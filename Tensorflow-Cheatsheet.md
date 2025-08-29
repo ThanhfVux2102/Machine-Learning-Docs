@@ -17,7 +17,7 @@
 |----------------------------|-------------------------------------------------------------|---------------------------------------------------------------------------|
 | `buffer_size`              | Rất quan trọng để tránh overfitting                        | - Bằng số mẫu (VD: `ds_info.splits['train'].num_examples`)                |
 | `seed`                     | Muốn kết quả reproducible                                  | Chọn số cụ thể như `seed=42`                                              |
-| `reshuffle_each_iteration`| Nếu muốn dữ liệu shuffle lại mỗi epoch                     | Mặc định là `True`, chỉ tắt khi debug                                     |
+| `reshuffle_each_iteration` | Nếu muốn dữ liệu shuffle lại mỗi epoch                     | Mặc định là `True`, chỉ tắt khi debug                                     |
 
 > ⚠️ Shuffle quá yếu → model học theo thứ tự và overfit.
 
@@ -70,12 +70,11 @@ ds_train = ds_train.map(preprocess_fn, num_parallel_calls=tf.data.AUTOTUNE)
 ds_train = ds_train.shuffle(buffer_size=10000, seed=42)
 ds_train = ds_train.batch(32, drop_remainder=True)
 ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
-
-
-
-# 📒 Keras Sequential Handbook (Categorized)
+```
 
 ---
+
+# 📒 Keras Sequential Handbook - Categorized
 
 ## 🔹 `model = Sequential([...])`
 
