@@ -89,7 +89,7 @@ ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ---
 
-### 2. Dense Layer
+#### Dense Layer ( included by .layers)
 ```python
 layers.Dense(units, activation=None, use_bias=True, kernel_initializer="glorot_uniform")
 ```
@@ -110,7 +110,7 @@ layers.Dense(units, activation=None, use_bias=True, kernel_initializer="glorot_u
 
 ## 🔹 `model.compile(optimizer=..., loss=..., metrics=...)`
 
-### 3. Loss Functions
+### 2. Loss Functions
 - **Binary** → `BinaryCrossentropy(from_logits=...)`.  
 - **Multi-class** →  
   - One-hot → `CategoricalCrossentropy(from_logits=...)`.  
@@ -125,7 +125,7 @@ layers.Dense(units, activation=None, use_bias=True, kernel_initializer="glorot_u
 
 ---
 
-### 4. Metrics
+### 3. Metrics
 - **Binary classification**: `accuracy`, `AUC`, `Precision/Recall`.  
 - **Multi-class**:  
   - `SparseCategoricalAccuracy` (integer labels).  
@@ -136,7 +136,7 @@ layers.Dense(units, activation=None, use_bias=True, kernel_initializer="glorot_u
 
 ---
 
-### 5. Optimizers
+### 4. Optimizers
 - **Adam** → `learning_rate=1e-3`.  
 - **AdamW** → add weight decay (`1e-4`).  
 - **SGD+Momentum** → `lr=1e-2 ~ 1e-1`, `momentum=0.9`.  
@@ -151,7 +151,7 @@ layers.Dense(units, activation=None, use_bias=True, kernel_initializer="glorot_u
 
 ## 🔹 `model.fit(x, y, ...)`
 
-### 6. Fit
+### 5. Fit
 ```python
 history = model.fit(
     x_train, y_train,
