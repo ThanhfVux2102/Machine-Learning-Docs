@@ -2,7 +2,7 @@
 
 ## 🔹 Câu lệnh mẫu
 ```bash
-!yolo task=detect mode=train model=yolov8s.pt     data={dataset.location}/data.yaml epochs=25 imgsz=800
+!yolo task=detect mode=train model=yolov8s.pt data={dataset.location}/data.yaml epochs=25 imgsz=800
 ```
 
 ---
