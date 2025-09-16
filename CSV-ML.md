@@ -73,12 +73,124 @@ preprocessor = ColumnTransformer(
 
 ## 5) Model Options
 
+
+
 ### a) Classification
 - `SGDClassifier(loss="log_loss")` – Logistic Regression với Gradient Descent.
 - `LogisticRegression`
 - `RandomForestClassifier`
 - `SVC`
 - `KNeighborsClassifier`
+# 📝 SGDClassifier Cheatsheet (scikit-learn)
+
+Bạn đang dùng **SGDClassifier** trong thư viện `sklearn.linear_model`.\
+Đây là một classifier dùng **Stochastic Gradient Descent (SGD)** để tối
+ưu các mô hình tuyến tính như **Logistic Regression, SVM**, v.v.
+
+------------------------------------------------------------------------
+
+## 📌 Ví dụ code
+
+``` python
+from sklearn.linear_model import SGDClassifier
+
+model = SGDClassifier(loss="log_loss", max_iter=1000, tol=1e-3, random_state=42)
+model.fit(X_train, y_train)
+```
+
+------------------------------------------------------------------------
+
+## 📌 Ý nghĩa từng tham số
+
+### `loss="log_loss"`
+
+-   Chỉ định hàm mất mát (loss function).\
+-   `"log_loss"` nghĩa là dùng **Logistic Regression** (tương đương phân
+    loại nhị phân/multi-class bằng sigmoid/softmax).
+
+**Một số lựa chọn khác:** - `"hinge"` → SVM tuyến tính.\
+- `"squared_error"` → Linear Regression.\
+- `"modified_huber"` → robust classification (ít nhạy với outlier).
+
+------------------------------------------------------------------------
+
+### `max_iter=1000`
+
+-   Số lần lặp tối đa (epochs) qua toàn bộ dữ liệu.\
+-   SGD có thể **dừng sớm** nếu hội tụ trước khi đạt tới số lần lặp này.
+
+------------------------------------------------------------------------
+
+### `tol=1e-3`
+
+-   Ngưỡng dừng (tolerance).\
+-   Nếu độ cải thiện nhỏ hơn `1e-3` trong một số vòng lặp liên tiếp,
+    thuật toán sẽ **dừng sớm** (early stopping).\
+-   Giá trị nhỏ hơn (ví dụ `1e-4`) → yêu cầu hội tụ kỹ hơn nhưng chạy
+    lâu hơn.
+
+------------------------------------------------------------------------
+
+### `random_state=42`
+
+-   Đặt seed để việc ngẫu nhiên trong SGD (chọn sample, shuffle) **tái
+    lập được**.\
+-   Nếu bỏ qua, mỗi lần chạy có thể cho kết quả hơi khác nhau.
+
+------------------------------------------------------------------------
+
+## 📌 Một số tham số quan trọng khác
+
+-   **`penalty`**: loại regularization (`"l2"` mặc định, `"l1"`,
+    `"elasticnet"`) → giúp tránh overfitting.\
+-   **`alpha`**: hệ số regularization (mặc định `0.0001`), tăng lên →
+    regularize mạnh hơn.\
+-   **`learning_rate`**: cách cập nhật step size (`"optimal"`,
+    `"constant"`, `"invscaling"`, `"adaptive"`).\
+-   **`eta0`**: learning rate ban đầu (dùng khi
+    `learning_rate="constant"` hoặc `"invscaling"`).
+
+------------------------------------------------------------------------
+
+## 📌 Các giá trị của `loss` trong SGDClassifier
+
+### 🔹 Phân loại (Classification)
+
+-   `"hinge"` → Linear SVM (Support Vector Machine) với hinge loss.\
+-   `"log_loss"` → Logistic Regression (multinomial hoặc binary
+    classification).\
+-   `"modified_huber"` → robust version của hinge loss (ít nhạy cảm với
+    outlier).\
+-   `"squared_hinge"` → hinge loss bình phương (SVM biến thể).
+
+### 🔹 Hồi quy (Regression)
+
+-   `"squared_error"` → Linear Regression (mse loss).\
+-   `"huber"` → Huber loss (lai giữa squared error và absolute error,
+    robust với outlier).\
+-   `"epsilon_insensitive"` → Linear SVR với epsilon-insensitive loss.\
+-   `"squared_epsilon_insensitive"` → SVR với squared
+    epsilon-insensitive loss.
+
+------------------------------------------------------------------------
+
+## 📌 Khi nào chọn cái nào?
+
+-   **Classification**
+    -   `hinge`: muốn huấn luyện SVM tuyến tính.\
+    -   `log_loss`: logistic regression (có xác suất output).\
+    -   `modified_huber`: classification nhưng có tolerance với outlier.
+-   **Regression**
+    -   `squared_error`: hồi quy tuyến tính.\
+    -   `huber`: hồi quy có outlier.\
+    -   `epsilon_insensitive`: hồi quy theo style SVR (chỉ quan tâm sai
+        số \> epsilon).
+
+------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------
 
 ### b) Regression
 - `SGDRegressor`
