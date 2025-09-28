@@ -1,6 +1,10 @@
-## 📘 Preprocessing Cheatsheet by Data Type
+# 📘 ML Preprocessing + Feature Engineering Cheatsheet
 
-# Preprocessing Cheatsheet by Data Type
+This guide combines **data preprocessing steps by type** and **general feature engineering strategies** into one reference.
+
+---
+
+## 🧹 Preprocessing Cheatsheet by Data Type
 
 | 📂 Data Type | ⚙️ Main Preprocessing Steps | 🛠️ Common Methods / Functions | 🏗️ Frameworks | 🔍 Recognition Trick |
 |--------------|-----------------------------|-------------------------------|---------------|-----------------------|
@@ -11,16 +15,78 @@
 | 🔊 Audio | 1. Feature extraction (MFCC, Spectrogram)<br>2. Normalize<br>3. Noise reduction<br>4. Sampling | `librosa.feature.mfcc()`<br>`librosa.amplitude_to_db()`<br>`scipy.signal`<br>`noisereduce.reduce_noise()`<br>`librosa.resample()` | **librosa**, **torchaudio (PyTorch)**, SpeechBrain, ESPnet, OpenAI Whisper | `.wav`, `.mp3` files or waveform arrays |
 | 🎞️ Video | 1. Extract frames<br>2. Resize frames<br>3. Normalize<br>4. Sampling | `cv2.VideoCapture().read()`<br>`cv2.resize()`<br>`frame/255.0`<br>Sampling by FPS or time | **OpenCV**, **PyTorchVideo**, torchvision, decord, moviepy, **YOLO + trackers (ByteTrack, StrongSORT)** | `.mp4`, `.avi` files or image sequences |
 
+---
 
+## 🏗️ General Pipeline Steps (All Data Types)
 
-## Goal for pipeline for every Data Type :
+| ✅ Step                | ✅ Purpose / Description                                                                 |
+|------------------------|-------------------------------------------------------------------------------------------|
+| **1. Load the dataset**   | Read/import raw data (disk, DB, web API, etc.)                                          |
+| **2. Normalize the data** | Standardize or scale (pixel [0,1], tokenization, feature scaling, etc.)                 |
+| **3. Shuffle the data**   | Randomize order to reduce bias and prevent overfitting                                  |
+| **4. Batch the data**     | Split into fixed-size groups for efficient training/inference                           |
+| **5. Prefetch the data**  | Load batches ahead during training for faster throughput                                |
 
-| ✅ **Step**                | ✅ **Purpose / Description**                                                                 |
-|---------------------------|----------------------------------------------------------------------------------------------|
-| **1. Load the dataset**   | Read and import the raw data into the pipeline (from disk, database, web, etc.)              |
-| **2. Normalize the data** | Standardize or scale the data (e.g. pixel values to [0, 1], text tokenization, feature scaling) |
-| **3. Shuffle the data**   | Randomize the order of data to prevent model overfitting or learning from sequence bias      |
-| **4. Batch the data**     | Divide the data into fixed-size groups (batches) to enable efficient training/inference      |
-| **5. Prefetch the data**  | Load batches ahead of time during training to improve pipeline throughput and efficiency     |
+---
 
+## 🧠 Feature Engineering Cheatsheet (Cross-Domain)
 
+### 1. Domain-driven Features
+Use domain knowledge to create meaningful features.  
+- Real estate: `house_age`, `since_renovation`, `living_ratio`  
+- Finance: `debt_to_income`, `savings_rate`  
+- Healthcare: `BMI`, `blood_pressure_ratio`  
+- E-commerce: `avg_order_value`, `days_since_last_purchase`
+
+---
+
+### 2. Transformations
+Fix skewness & non-linear relationships.  
+- Log transform: `log(price)`, `log(income)`  
+- Square root: `sqrt(accident_counts)`  
+- Polynomial: `age²`, `temperature²`
+
+---
+
+### 3. Encoding Categorical Data
+Turn categories into usable numbers.  
+- One-hot encoding: good for linear models.  
+- Label encoding: simple integer map (OK for trees).  
+- Frequency / target encoding: good for high-cardinality.  
+- Group rare categories into “Other”.
+
+---
+
+### 4. Interaction Features
+Combine features to capture hidden effects.  
+- Real estate: `sqft_living × bathrooms`, `waterfront × view`  
+- Retail: `discount × season`  
+- Credit scoring: `age × income`
+
+---
+
+### 5. Aggregations & Binning
+Summarize and bucket values.  
+- Binning: age → `young/adult/senior`, price → `low/medium/high`  
+- Aggregations: average price per zipcode, median income per region, customer purchase frequency
+
+---
+
+## 🚦 Workflow for Feature Engineering
+
+1. **Understand raw features** (meaning, type, skew, distribution).  
+2. **Brainstorm features** (domain knowledge + math).  
+3. **Check correlations** (heatmap, scatterplots).  
+4. **Iteratively test** (cross-validation, metrics).  
+5. **Keep what helps, drop what doesn’t**.
+
+---
+
+## ✅ Rules of Thumb
+
+- High correlation with target, low with others → **keep**  
+- High correlation with target & another feature → **drop one** (linear models)  
+- Low correlation with target & others → **candidate to drop** (test first)  
+- Weak features can help in **non-linear models** → **don’t drop blindly**
+
+---
