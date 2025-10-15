@@ -1,6 +1,6 @@
-# 📘 ML Preprocessing + Feature Engineering Cheatsheet
+# 📘 ML Preprocessing + Feature Engineering + Missing Value Imputation Cheatsheet
 
-This guide combines **data preprocessing steps by type** and **general feature engineering strategies** into one reference.
+This guide combines **data preprocessing**, **feature engineering**, and **missing value imputation** into one comprehensive reference for machine learning workflows.
 
 ---
 
@@ -8,24 +8,24 @@ This guide combines **data preprocessing steps by type** and **general feature e
 
 | 📂 Data Type | ⚙️ Main Preprocessing Steps | 🛠️ Common Methods / Functions | 🏗️ Frameworks | 🔍 Recognition Trick |
 |--------------|-----------------------------|-------------------------------|---------------|-----------------------|
-| 🖼️ Image | 1. Resize<br>2. Normalize pixel values<br>3. Data Augmentation<br>4. Encode labels | `tf.image.resize()`<br>`tf.cast(img, tf.float32)/255`<br>`ImageDataGenerator`<br>`tf.image.random_flip_left_right`<br>`LabelEncoder`, `to_categorical()` | **TensorFlow/Keras**, **PyTorch** (`torchvision`, `albumentations`), **OpenCV**, **YOLO (Ultralytics)**, Detectron2, MMDetection | `.jpg`, `.png`, shape `(H, W, C)` |
-| 📄 Text | 1. Lowercase<br>2. Remove punctuation / stopwords<br>3. Tokenize<br>4. Padding<br>5. Vectorization (TF-IDF / BERT) | `.lower()`, `re.sub()`<br>`nltk.corpus.stopwords`, `re`<br>`Tokenizer().fit_on_texts()`<br>`pad_sequences()`<br>`TfidfVectorizer`, `BERTTokenizer` | **Hugging Face Transformers**, spaCy, NLTK, TensorFlow/Keras (`TextVectorization`) | Files like `.txt`, `.csv` containing sentences or paragraphs |
-| 📊 Tabular (pandas) | 1. Handle missing values<br>2. Encode categorical variables<br>3. Scale numerical features<br>4. Feature selection<br>5. Merge data | `SimpleImputer`, `dropna()`<br>`OneHotEncoder`, `LabelEncoder`, `get_dummies()`<br>`StandardScaler`, `MinMaxScaler`<br>`SelectKBest` | **scikit-learn**, pandas, XGBoost/LightGBM/CatBoost | CSV/XLS with multiple columns and data types |
-| 📈 Time-Series | 1. Parse timestamp<br>2. Resampling<br>3. Normalize<br>4. Sliding Window | `pd.to_datetime()`<br>`df.resample('D').mean()`<br>`StandardScaler`, `MinMaxScaler`<br>`sliding_window_view` | **sktime**, **darts**, prophet, statsmodels, pandas | Has `"timestamp"` column, time-sequenced data |
-| 🔊 Audio | 1. Feature extraction (MFCC, Spectrogram)<br>2. Normalize<br>3. Noise reduction<br>4. Sampling | `librosa.feature.mfcc()`<br>`librosa.amplitude_to_db()`<br>`scipy.signal`<br>`noisereduce.reduce_noise()`<br>`librosa.resample()` | **librosa**, **torchaudio (PyTorch)**, SpeechBrain, ESPnet, OpenAI Whisper | `.wav`, `.mp3` files or waveform arrays |
-| 🎞️ Video | 1. Extract frames<br>2. Resize frames<br>3. Normalize<br>4. Sampling | `cv2.VideoCapture().read()`<br>`cv2.resize()`<br>`frame/255.0`<br>Sampling by FPS or time | **OpenCV**, **PyTorchVideo**, torchvision, decord, moviepy, **YOLO + trackers (ByteTrack, StrongSORT)** | `.mp4`, `.avi` files or image sequences |
+| 🖼️ **Image** | 1. Resize<br>2. Normalize pixel values<br>3. Data Augmentation<br>4. Encode labels | `tf.image.resize()`<br>`tf.cast(img, tf.float32)/255`<br>`ImageDataGenerator`<br>`tf.image.random_flip_left_right`<br>`LabelEncoder`, `to_categorical()` | **TensorFlow/Keras**, **PyTorch** (`torchvision`, `albumentations`), **OpenCV**, **YOLO (Ultralytics)**, Detectron2, MMDetection | `.jpg`, `.png`, shape `(H, W, C)` |
+| 📄 **Text** | 1. Lowercase<br>2. Remove punctuation / stopwords<br>3. Tokenize<br>4. Padding<br>5. Vectorization (TF-IDF / BERT) | `.lower()`, `re.sub()`<br>`nltk.corpus.stopwords`, `re`<br>`Tokenizer().fit_on_texts()`<br>`pad_sequences()`<br>`TfidfVectorizer`, `BERTTokenizer` | **Hugging Face Transformers**, spaCy, NLTK, TensorFlow/Keras (`TextVectorization`) | Files like `.txt`, `.csv` containing sentences or paragraphs |
+| 📊 **Tabular (pandas)** | 1. Handle missing values<br>2. Encode categorical variables<br>3. Scale numerical features<br>4. Feature selection<br>5. Merge data | `SimpleImputer`, `dropna()`<br>`OneHotEncoder`, `LabelEncoder`, `get_dummies()`<br>`StandardScaler`, `MinMaxScaler`<br>`SelectKBest` | **scikit-learn**, pandas, XGBoost/LightGBM/CatBoost | CSV/XLS with multiple columns and data types |
+| 📈 **Time-Series** | 1. Parse timestamp<br>2. Resampling<br>3. Normalize<br>4. Sliding Window | `pd.to_datetime()`<br>`df.resample('D').mean()`<br>`StandardScaler`, `MinMaxScaler`<br>`sliding_window_view` | **sktime**, **darts**, prophet, statsmodels, pandas | Has `"timestamp"` column, time-sequenced data |
+| 🔊 **Audio** | 1. Feature extraction (MFCC, Spectrogram)<br>2. Normalize<br>3. Noise reduction<br>4. Sampling | `librosa.feature.mfcc()`<br>`librosa.amplitude_to_db()`<br>`scipy.signal`<br>`noisereduce.reduce_noise()`<br>`librosa.resample()` | **librosa**, **torchaudio (PyTorch)**, SpeechBrain, ESPnet, OpenAI Whisper | `.wav`, `.mp3` files or waveform arrays |
+| 🎞️ **Video** | 1. Extract frames<br>2. Resize frames<br>3. Normalize<br>4. Sampling | `cv2.VideoCapture().read()`<br>`cv2.resize()`<br>`frame/255.0`<br>Sampling by FPS or time | **OpenCV**, **PyTorchVideo**, torchvision, decord, moviepy, **YOLO + trackers (ByteTrack, StrongSORT)** | `.mp4`, `.avi` files or image sequences |
 
 ---
 
 ## 🏗️ General Pipeline Steps (All Data Types)
 
-| ✅ Step                | ✅ Purpose / Description                                                                 |
-|------------------------|-------------------------------------------------------------------------------------------|
-| **1. Load the dataset**   | Read/import raw data (disk, DB, web API, etc.)                                          |
-| **2. Normalize the data** | Standardize or scale (pixel [0,1], tokenization, feature scaling, etc.)                 |
-| **3. Shuffle the data**   | Randomize order to reduce bias and prevent overfitting                                  |
-| **4. Batch the data**     | Split into fixed-size groups for efficient training/inference                           |
-| **5. Prefetch the data**  | Load batches ahead during training for faster throughput                                |
+| ✅ Step | ✅ Purpose / Description |
+|---------|--------------------------|
+| **1. Load the dataset** | Read/import raw data (disk, DB, web API, etc.) |
+| **2. Normalize the data** | Standardize or scale (pixel [0,1], tokenization, feature scaling, etc.) |
+| **3. Shuffle the data** | Randomize order to reduce bias and prevent overfitting |
+| **4. Batch the data** | Split into fixed-size groups for efficient training/inference |
+| **5. Prefetch the data** | Load batches ahead during training for faster throughput |
 
 ---
 
@@ -38,15 +38,11 @@ Use domain knowledge to create meaningful features.
 - Healthcare: `BMI`, `blood_pressure_ratio`  
 - E-commerce: `avg_order_value`, `days_since_last_purchase`
 
----
-
 ### 2. Transformations
 Fix skewness & non-linear relationships.  
 - Log transform: `log(price)`, `log(income)`  
 - Square root: `sqrt(accident_counts)`  
 - Polynomial: `age²`, `temperature²`
-
----
 
 ### 3. Encoding Categorical Data
 Turn categories into usable numbers.  
@@ -55,15 +51,11 @@ Turn categories into usable numbers.
 - Frequency / target encoding: good for high-cardinality.  
 - Group rare categories into “Other”.
 
----
-
 ### 4. Interaction Features
 Combine features to capture hidden effects.  
 - Real estate: `sqft_living × bathrooms`, `waterfront × view`  
 - Retail: `discount × season`  
 - Credit scoring: `age × income`
-
----
 
 ### 5. Aggregations & Binning
 Summarize and bucket values.  
@@ -88,5 +80,110 @@ Summarize and bucket values.
 - High correlation with target & another feature → **drop one** (linear models)  
 - Low correlation with target & others → **candidate to drop** (test first)  
 - Weak features can help in **non-linear models** → **don’t drop blindly**
+
+---
+
+# 📉 Missing Value Imputation Cheatsheet
+
+## 🟢 Mean Imputation (Trung bình)
+**Type:** Numerical  
+**Use when:** Data is roughly **normal** (no strong outliers).
+
+```python
+from sklearn.impute import SimpleImputer
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({'Age': [25, 30, np.nan, 40]})
+imputer = SimpleImputer(strategy='mean')
+df['Age'] = imputer.fit_transform(df[['Age']])
+```
+
+---
+
+## 🟡 Median Imputation (Trung vị)
+**Type:** Numerical  
+**Use when:** Data is **skewed** or has **outliers**.
+
+```python
+imputer = SimpleImputer(strategy='median')
+df['Age'] = imputer.fit_transform(df[['Age']])
+```
+
+---
+
+## 🔵 Mode Imputation (Mốt)
+**Type:** Categorical / Discrete  
+**Use when:** You have **object** or **category** columns.
+
+```python
+imputer = SimpleImputer(strategy='most_frequent')
+df['Gender'] = imputer.fit_transform(df[['Gender']])
+```
+
+---
+
+## 🟣 Forward / Backward Fill
+**Type:** Time series / Sequential data  
+**Use when:** Missing values appear over time.
+
+```python
+# Forward fill (use previous value)
+df['Temp'] = df['Temp'].fillna(method='ffill')
+
+# Backward fill (use next value)
+df['Temp'] = df['Temp'].fillna(method='bfill')
+```
+
+---
+
+## 🧩 KNN Imputation
+**Type:** Numerical / Encoded categorical  
+**Use when:** Features are **correlated** and missingness is small.
+
+```python
+from sklearn.impute import KNNImputer
+
+imputer = KNNImputer(n_neighbors=3)
+df_imputed = imputer.fit_transform(df)  # returns NumPy array
+```
+> ⚠️ Tips: Scale data before using KNN (`StandardScaler`) and encode categorical features numerically first.
+
+---
+
+## 🧮 MICE Imputation (Multiple Imputation by Chained Equations)
+**Type:** Numerical / Mixed  
+**Use when:** Missingness depends on other columns (MAR assumption).
+
+```python
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+
+imputer = IterativeImputer(random_state=0)
+df_imputed = imputer.fit_transform(df)
+```
+> 🧠 For better handling of mixed data, use `miceforest` (Random Forest–based MICE).
+
+---
+
+## ⚙️ Quick Summary Table
+
+| Scenario | Best Method |
+|-----------|--------------|
+| Normal numeric data | **Mean** |
+| Skewed numeric data | **Median** |
+| Categorical / object type | **Mode** |
+| Time series | **Forward / Backward Fill** |
+| Correlated features | **KNN** |
+| Complex dependencies | **MICE** |
+
+---
+
+## 💡 Pro Tips
+
+- Always **inspect missing patterns** using `df.isnull().sum()` or a **heatmap**.  
+- Scale numeric features before **KNN** or **MICE**.  
+- Encode categorical features properly before applying advanced imputations.  
+- After imputation, **check data distribution** to avoid bias.
 
 ---
