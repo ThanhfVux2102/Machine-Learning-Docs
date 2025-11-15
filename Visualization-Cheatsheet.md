@@ -30,13 +30,5 @@ Useful for EDA (Exploratory Data Analysis) and machine learning preprocessing.
 
 ---
 
-### 🧠 Tip:
-Use visualization before modeling to decide **which preprocessing pipeline fits your data**.  
-For example:
-- If histogram shows skew → apply **log transform**  
-- If boxplot shows strong outliers → use **RobustScaler**  
-- If heatmap shows redundancy → **drop correlated features**
-
----
 
 
