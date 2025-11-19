@@ -1,6 +1,7 @@
 # Core Deep Learning Training Loop (with PyTorch)
 
-This note summarizes the core concepts that appear in **every** deep learning training loop, especially when using **PyTorch**.
+This note summarizes the core concepts that appear in **every** deep learning training loop, especially when using **PyTorch**.  
+Ở từng bước mình đều ghi rõ **Goal (mục tiêu)** để bạn nắm rõ “bước này để làm gì”.
 
 ---
 
@@ -9,6 +10,9 @@ This note summarizes the core concepts that appear in **every** deep learning tr
 ```python
 for epoch in range(num_epochs):
     for x_batch, y_batch in dataloader:
+        # 0. (optional) Clear old gradients
+        optimizer.zero_grad()
+
         # 1. Forward pass
         y_pred = model(x_batch)
 
@@ -20,19 +24,33 @@ for epoch in range(num_epochs):
 
         # 4. Update parameters
         optimizer.step()
-        optimizer.zero_grad()
 ```
 
-Tất cả các khái niệm bên dưới đều xoay quanh đoạn code này.
+### Goal of each step
+
+- **optimizer.zero_grad()**  
+  → Goal: Xoá toàn bộ gradient cũ (`param.grad`) từ batch trước, để batch hiện tại **không bị cộng dồn nhầm**.
+
+- **Forward pass (`y_pred = model(x_batch)`)**  
+  → Goal: Tính **output (prediction/logits)** của model với batch input hiện tại và **xây computation graph** để sau này autograd dùng cho backward.
+
+- **Loss computation (`loss = loss_fn(y_pred, y_batch)`)**  
+  → Goal: Biến sự khác biệt giữa **dự đoán** và **nhãn thật** thành **1 số scalar** (loss) để tối ưu (minimize).
+
+- **Backward pass (`loss.backward()`)**  
+  → Goal: Dùng autograd để tính **gradient của loss theo từng parameter** (`∂loss/∂w`) và lưu vào `param.grad`.
+
+- **Optimizer step (`optimizer.step()`)**  
+  → Goal: Dùng `param.grad` để **cập nhật lại weights** (gradient descent / Adam / …), giúp model dự đoán tốt hơn ở lần sau.
 
 ---
 
 ## 1. Model & Parameters (Weights, Bias)
 
-- **Model** trong PyTorch thường là class kế thừa `torch.nn.Module`.
-- **Parameters** là các tensor kiểu `torch.nn.Parameter` được model tự động đăng ký và sẽ được optimizer cập nhật.
+- **Goal:** Định nghĩa **hàm f(x; θ)** – tức là kiến trúc mạng (layers, connections, activation, …) và tập tham số **θ = {weights, biases}** mà ta sẽ *học* trong quá trình train.
 
-Ví dụ:
+- **Model** trong PyTorch thường là class kế thừa `torch.nn.Module`.
+- **Parameters** là các tensor kiểu `torch.nn.Parameter` được model đăng ký tự động và sẽ được optimizer cập nhật.
 
 ```python
 import torch.nn as nn
@@ -49,35 +67,43 @@ model = MyNet()
 params = list(model.parameters())
 ```
 
-**Tài liệu tham khảo:**
+**Docs / articles:**
 
-- PyTorch `nn.Module`: vào trang chính [pytorch.org](https://pytorch.org) → Docs → PyTorch → API → `torch.nn`
-- Mục `nn.Parameter` trong phần `torch.nn` docs
+- `torch.nn` overview  
+  https://pytorch.org/docs/stable/nn.html
+- `torch.nn.Module` API  
+  https://pytorch.org/docs/stable/generated/torch.nn.Module.html
+- Note “Modules — PyTorch”  
+  https://pytorch.org/docs/stable/notes/modules.html
+- Tutorial “Build the Neural Network”  
+  https://pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html
 
 ---
 
 ## 2. Forward Pass
 
-**Forward pass** = gửi input đi qua các layer của model để lấy output (logits, prediction,…).
+- **Goal:**  
+  - Tính **output** của model (logits / probability / prediction) từ input.  
+  - Đồng thời để autograd **xây computation graph** (mỗi phép toán được ghi lại) cho bước backward.
 
-Trong PyTorch, bạn cài đặt bằng hàm `forward`, và gọi bằng `model(x)`:
+Trong PyTorch, forward được hiện thực bằng hàm `forward`, còn gọi bằng `model(x)`:
 
 ```python
 y_pred = model(x_batch)   # forward pass
 ```
 
-**Model** là một đồ thị tính toán (computation graph) được xây dựng trong lúc forward, để phục vụ cho autograd ở bước backward sau.
+**Docs:**
 
-**Ref docs:**
-
-- PyTorch Tutorials → “Learning PyTorch with Examples”
-- PyTorch Tutorials → “Neural Networks”
+- Tutorial “Build the Neural Network”  
+  https://pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html
+- Tutorial “Neural Networks”  
+  https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
 
 ---
 
 ## 3. Loss Function
 
-**Loss function** đo “độ sai” giữa `y_pred` và `y_true` (label).  
+- **Goal:** Đo **mức độ sai** giữa dự đoán của model và nhãn thật, gom lại thành **một số scalar** để dùng cho tối ưu (minimize).
 
 Một số loss phổ biến:
 
@@ -92,16 +118,24 @@ loss_fn = nn.CrossEntropyLoss()
 loss = loss_fn(y_pred, y_true)
 ```
 
-**Ref docs:**
+**Docs:**
 
-- PyTorch `torch.nn` → mục “Loss Functions”
-- PyTorch Tutorials → “Training a Classifier”
+- Loss Functions in `torch.nn`  
+  https://pytorch.org/docs/stable/nn.html#loss-functions
+- Tutorial “Training a Classifier”  
+  https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 
 ---
 
 ## 4. Backward Pass (Backprop) & Autograd
 
-**Backward pass / backprop** = tự động tính gradient của loss với từng parameter bằng **autograd**.
+- **Goal backward:**  
+  - Tính **gradient của loss theo từng parameter** (`∂loss/∂θ`) bằng chain rule.  
+  - Lưu gradient vào `param.grad` để optimizer dùng.
+
+- **Goal autograd:**  
+  - Tự động hoá việc tính đạo hàm, không phải code backprop bằng tay.  
+  - Quản lý **computation graph** và thứ tự nhân chain rule.
 
 Trong PyTorch:
 
@@ -109,25 +143,31 @@ Trong PyTorch:
 loss.backward()  # compute d(loss)/d(param) for all params with requires_grad=True
 ```
 
-PyTorch sẽ:
+Autograd sẽ:
 
-1. Ghi lại tất cả operation trong forward thành một **computation graph**.
-2. Khi gọi `backward()`, nó duyệt ngược graph và dùng **chain rule** để tính gradient.
+1. Ghi lại operation trong forward thành **computation graph**.
+2. Duyệt ngược graph, dùng chain rule để tính gradient và cộng vào `param.grad`.
 
-Nếu cần gradient w.r.t inputs cụ thể, có thể dùng `torch.autograd.grad`.
+**Docs:**
 
-**Ref docs:**
-
-- PyTorch Docs → “Autograd mechanics”
-- PyTorch Tutorials → “Autograd: Automatic Differentiation”
+- Autograd package  
+  https://pytorch.org/docs/stable/autograd.html
+- Tutorial “Automatic differentiation with torch.autograd”  
+  https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html
+- Tutorial “A Gentle Introduction to torch.autograd”  
+  https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html
 
 ---
 
-## 5. Gradient, Gradient Descent, Optimizer
+## 5. Gradient, Optimizer, Gradient Descent
 
-Sau khi `loss.backward()` xong, mỗi parameter `p` sẽ có `p.grad`.  
+- **Goal gradient:**  
+  - Cho biết nếu **tăng/giảm** một weight tí xíu thì **loss thay đổi thế nào** (hướng & độ lớn).
 
-**Optimizer** (SGD, Adam, …) sẽ dùng gradient này để cập nhật weights:
+- **Goal optimizer:**  
+  - Dùng gradient để **tìm bộ weights tốt hơn** (giảm loss), theo một thuật toán tối ưu cụ thể (SGD, Adam, …).
+
+Ví dụ:
 
 ```python
 import torch.optim as optim
@@ -135,56 +175,58 @@ import torch.optim as optim
 optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
 # in training loop
-loss.backward()
-optimizer.step()        # update weights
-optimizer.zero_grad()   # clear old gradients
+optimizer.zero_grad()     # clear old gradients
+y_pred = model(x_batch)
+loss = loss_fn(y_pred, y_batch)
+loss.backward()           # compute gradients
+optimizer.step()          # update weights
 ```
 
-- **Gradient descent** (và các biến thể mini-batch, SGD) là thuật toán tối ưu để giảm loss bằng cách đi ngược hướng gradient.
+- `optimizer.step()` thường làm kiểu:  
+  \\( w_{new} = w_{old} - \eta \cdot \frac{\partial L}{\partial w} \\)
+- `optimizer.zero_grad()` dọn `w.grad` về 0 sau khi đã dùng xong, chuẩn bị cho batch mới.
 
-**Ref docs:**
+**Docs:**
 
-- PyTorch Docs → `torch.optim`
-- PyTorch Tutorials → “Optimization Loop” / “What is torch.optim?”
+- `torch.optim` docs  
+  https://pytorch.org/docs/stable/optim.html
+- Tutorial “Optimizing Model Parameters”  
+  https://pytorch.org/tutorials/beginner/basics/optimization_tutorial.html
+- Adam optimizer  
+  https://pytorch.org/docs/stable/generated/torch.optim.Adam.html
 
 ---
 
 ## 6. Learning Rate, Batch Size, Epoch
 
-Ba hyperparameter cực core:
+- **Goal learning rate (lr):**  
+  - Điều chỉnh **bước nhảy** khi cập nhật weights. LR quá lớn → dễ “nổ”; quá nhỏ → học chậm.
 
-- **Learning rate (lr)**  
-  Bước nhảy mỗi lần update:  
-  \[
-  w_{	ext{new}} = w_{	ext{old}} - \eta \cdot rac{\partial L}{\partial w}
-  \]  
-  LR lớn → học nhanh nhưng dễ “nổ”; LR nhỏ → ổn định nhưng chậm.
+- **Goal batch size:**  
+  - Quyết định **mức độ nhiễu** của gradient (batch nhỏ → noisy, batch lớn → ổn định hơn) và lượng memory dùng.
 
-- **Batch size**  
-  Số mẫu trong 1 mini-batch để tính loss và gradient.  
-  Liên quan trực tiếp tới biến thể mini-batch gradient descent.
+- **Goal epoch:**  
+  - Đo số lần model **quét hết tập train**; thường dùng để lên lịch learning rate, early stopping…
 
-- **Epoch**  
-  1 epoch = 1 lần duyệt hết toàn bộ tập train qua các mini-batch.
+**Docs / bài đọc:**
 
-**Ref docs / blog:**
-
-- Từ khóa để tra thêm:  
-  - “learning rate and batch size relationship”  
-  - “epoch vs batch size vs iteration”
+- “Optimizing Model Parameters” (giải thích iter / epoch / batch)  
+  https://pytorch.org/tutorials/beginner/basics/optimization_tutorial.html
+- RealPython: train/test split & cơ bản training loop  
+  https://realpython.com/train-test-split-python-data/
 
 ---
 
 ## 7. Activation Functions
 
-Activation function tạo **phi tuyến** giúp mạng học quan hệ phức tạp.
+- **Goal:** Tạo **phi tuyến** trong mạng; nếu không có activation phi tuyến, nhiều layer Linear chồng nhau vẫn chỉ tương đương 1 Linear duy nhất.
 
-Một số thường dùng:
+Các activation phổ biến:
 
 - `nn.ReLU`, `nn.LeakyReLU`
 - `nn.Sigmoid`
 - `nn.Tanh`
-- `nn.Softmax` (thường dùng ở cuối cho phân loại, hoặc dùng implicit qua `CrossEntropyLoss`)
+- `nn.Softmax` (thường dùng ở cuối classification)
 
 Ví dụ:
 
@@ -196,22 +238,20 @@ self.net = nn.Sequential(
 )
 ```
 
-Tất cả đều nằm trong `torch.nn` hoặc `torch.nn.functional` (mục Non-linear Activations).
+**Docs:**
 
-**Ref docs:**
-
-- PyTorch Docs → “Non-linear Activations (weighted sum, non-linearity)” trong `torch.nn`
+- Non-linear Activations in `torch.nn`  
+  https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity
 
 ---
 
 ## 8. Metrics (Accuracy, MAE, ...)
 
-**Loss** dùng để train, **metric** dùng để đánh giá.
+- **Goal:** Cung cấp **thước đo dễ hiểu** để đánh giá model (ngoài loss), ví dụ: accuracy, F1, MAE,…
 
-- Classification: **accuracy**, precision, recall, F1, AUC…
-- Regression: **MAE**, RMSE, R²…
+Loss dùng để **tối ưu**; metric dùng để **đọc hiểu kết quả** và so sánh model.
 
-Ví dụ (simple accuracy cho classification):
+Ví dụ (simple accuracy):
 
 ```python
 with torch.no_grad():
@@ -220,70 +260,83 @@ with torch.no_grad():
     acc = (preds == y_val).float().mean().item()
 ```
 
-Thường dùng lib ngoài:
+**Docs:**
 
-- `torchmetrics`
-- `sklearn.metrics`
-
-**Ref docs:**
-
-- `sklearn.metrics` (Scikit-learn docs)
-- `torchmetrics` docs
+- Scikit-learn model evaluation  
+  https://scikit-learn.org/stable/modules/model_evaluation.html
+- TorchMetrics docs  
+  https://lightning.ai/docs/torchmetrics/stable/index.html
 
 ---
 
 ## 9. Train / Val / Test Split
 
-Chia dữ liệu thành 3 phần:
+- **Goal:**  
+  - **Train:** cho model học.  
+  - **Validation:** theo dõi overfitting, chọn hyperparameter, chọn model.  
+  - **Test:** đánh giá cuối cùng, không đụng vào khi tune.
 
-- **Train**: dùng để model học (update weights).
-- **Validation (val)**: dùng để chọn hyperparameter, early stopping, theo dõi overfitting.
-- **Test**: dùng một lần cuối cùng để report kết quả (không đụng vào khi tune).
-
-Thực hiện bằng:
-
-- `sklearn.model_selection.train_test_split`
-- Hoặc tự chia, rồi wrap thành `torch.utils.data.Dataset` + `DataLoader`.
+Ví dụ với scikit-learn:
 
 ```python
 from sklearn.model_selection import train_test_split
 
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 ```
 
-**Ref docs:**
+**Docs:**
 
-- Scikit-learn Docs → `model_selection.train_test_split`
-- PyTorch Docs → `torch.utils.data.Dataset`, `DataLoader`
+- `train_test_split`  
+  https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+- RealPython hướng dẫn chi tiết  
+  https://realpython.com/train-test-split-python-data/
 
 ---
 
 ## 10. Computation Graph & Autograd (PyTorch View)
 
+- **Goal computation graph:**  
+  - Lưu lại **chuỗi phép toán** của forward để biết phải nhân chain rule như thế nào khi backward.
+
+- **Goal autograd trên graph:**  
+  - Từ `loss`, đi ngược graph → tính gradient của từng node (layer, operation) một cách **tự động**.
+
 Trong PyTorch:
 
-- Mọi operation trên tensor có `requires_grad=True` sẽ tạo nên **computation graph** (DAG).  
-- Các node lá (leaf) thường là parameters / input.  
-- Các node root là output / loss.  
-- `loss.backward()` = autograd duyệt graph ngược lại, áp dụng **reverse-mode automatic differentiation** (backprop).
+- Tensors với `requires_grad=True` được track trong graph.
+- Mỗi operation sinh ra tensor mới kèm `grad_fn` (hàm dùng để tính gradient ngược).
+- `loss.backward()` kích hoạt quá trình reverse-mode automatic differentiation.
 
-**Ref docs:**
+**Docs:**
 
-- PyTorch Docs → “Autograd mechanics”
-- PyTorch Tutorials → “Autograd: Automatic Differentiation”
+- Autograd docs  
+  https://pytorch.org/docs/stable/autograd.html
+- Autograd quickstart  
+  https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html
 
 ---
 
-## 11. Big Picture: Everything Ties Back to the Training Loop
+## 11. Big Picture: Mục tiêu của cả vòng lặp train
 
-Tóm gọn:
+Nếu gom lại:
 
-1. **Model + Parameters** (`nn.Module`, `nn.Parameter`)
-2. **Forward pass** → output
-3. **Loss function** → scalar loss
-4. **Backward pass (autograd)** → gradients
-5. **Optimizer (gradient descent variants)** → update parameters
-6. Lặp lại qua nhiều **epoch**, với **mini-batch**, dùng **activation functions**, **metrics** và **train/val/test split** để đảm bảo model **generalize** tốt.
+1. **Model + Parameters**  
+   → Goal: Định nghĩa hàm f(x; θ) có thể học được.
 
-Nếu bạn hiểu kỹ từng mục ở trên, bạn đã nắm **core của Deep Learning**; sau đó chỉ cần thay **kiến trúc model** (CNN, RNN, Transformer, …) là làm được NLP, CV, tabular, v.v.
+2. **Forward pass**  
+   → Goal: Tính output + build computation graph.
+
+3. **Loss function**  
+   → Goal: Đo sai số thành 1 số scalar để tối ưu.
+
+4. **Backward pass (autograd)**  
+   → Goal: Tính gradient của loss theo từng θ.
+
+5. **Optimizer step**  
+   → Goal: Cập nhật θ theo hướng giảm loss (gradient descent).
+
+6. **Repeat over many epochs**  
+   → Goal: Làm model càng ngày càng **generalize tốt** trên dữ liệu mới, theo dõi bằng **metrics** trên **val/test**.
+
+Hiểu được **Goal của từng step** trong file này là bạn đã nắm rất rõ **core training loop của Deep Learning**. Sau đó chỉ cần thay **kiến trúc model** (CNN, RNN, Transformer, …) là áp dụng được cho CV, NLP, tabular, time series, v.v.
