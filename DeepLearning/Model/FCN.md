@@ -130,4 +130,3 @@ loss='mean_squared_error'  # hoặc 'mean_absolute_error'
 | **Loss Function**       | `binary_crossentropy`                         | `sparse_categorical_crossentropy`           | `binary_crossentropy`                      | `mean_squared_error`                      |
 | **y Labels**            | 0 hoặc 1                                      | Integer từ 0 đến `num_classes-1` hoặc one-hot | 0 hoặc 1 cho mỗi label                     | Giá trị liên tục                          |
 
-Hy vọng bạn đã hiểu cách tùy chỉnh các yếu tố này cho các loại bài toán khác nhau trong FCN. Cần thêm thông tin hay có câu hỏi gì khác, đừng ngần ngại yêu cầu thêm nhé!
