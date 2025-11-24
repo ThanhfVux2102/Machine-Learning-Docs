@@ -1,4 +1,48 @@
 
+# Hướng Dẫn Xây Dựng Fully Connected Network (FCN)
+
+## 1. **FCN là gì?**
+Fully Connected Network (FCN) là một loại neural network, trong đó mỗi neuron trong một lớp sẽ kết nối với tất cả các neuron trong lớp tiếp theo. FCN thường được sử dụng cho các bài toán phân loại (classification) và hồi quy (regression).
+
+**Các bước xây dựng FCN**:
+- **Input Layer**: Lớp đầu vào, nơi dữ liệu đầu vào được đưa vào mô hình.
+- **Hidden Layers**: Các lớp ẩn, nơi mô hình học các đặc trưng từ dữ liệu.
+- **Output Layer**: Lớp đầu ra, nơi kết quả dự đoán của mô hình được tạo ra.
+
+### **Cách xây dựng mô hình FCN:**
+1. **Chuẩn bị Dữ liệu**: Đảm bảo dữ liệu đã được tiền xử lý và chuyển đổi thành dạng có thể đưa vào mô hình.
+2. **Xây dựng Mô hình**:
+   - **Input Layer**: Chỉ định số lượng đặc trưng (features) trong dữ liệu đầu vào.
+   - **Hidden Layers**: Thêm các lớp ẩn với hàm kích hoạt **ReLU** hoặc **tanh**.
+   - **Output Layer**: Tùy thuộc vào bài toán, sử dụng hàm kích hoạt như **sigmoid** (cho binary classification), **softmax** (cho multiclass classification), hoặc không có activation (cho regression).
+3. **Tùy chỉnh Loss Function và Optimizer**: Chọn loss function và optimizer phù hợp với bài toán.
+
+### **Sample Code cho FCN**:
+
+```python
+# Build the model
+model = Sequential([
+    Dense(64, input_dim=X.shape[1], activation='relu'),  # Input layer with ReLU activation
+    Dense(32, activation='relu'),  # Hidden layer with ReLU activation
+    Dense(5, activation='softmax')  # Output layer for multiclass classification
+])
+
+# Compile the model
+model.compile(optimizer=Adam(learning_rate=0.001),
+              loss='sparse_categorical_crossentropy',  # Suitable for multiclass classification
+              metrics=['accuracy'])
+```
+
+**Giải thích Code**:
+- **Dense Layer**: Mỗi lớp **Dense** có các neuron được kết nối với tất cả các neuron trong lớp tiếp theo.
+- **Activation Functions**:
+  - **ReLU** (Rectified Linear Unit): Dùng cho các lớp ẩn để giúp mô hình học được các đặc trưng không tuyến tính.
+  - **Softmax**: Dùng cho lớp đầu ra trong bài toán phân loại nhiều lớp (multiclass classification).
+- **Loss Function**: `sparse_categorical_crossentropy` dùng cho phân loại nhiều lớp, phù hợp với output integer labels.
+- **Optimizer**: `Adam`, một optimizer hiệu quả và phổ biến trong deep learning.
+
+---
+
 # Sự khác biệt giữa Output Layer, Loss Function và y Labels trong FCN
 
 Trong mô hình Fully Connected Network (FCN), các yếu tố quan trọng để cấu hình mô hình cho các bài toán khác nhau là:
@@ -129,5 +173,3 @@ loss='mean_squared_error'  # hoặc 'mean_absolute_error'
 | **Output Layer**        | `Dense(1, activation='sigmoid')`              | `Dense(num_classes, activation='softmax')`  | `Dense(num_labels, activation='sigmoid')`   | `Dense(1)`                                |
 | **Loss Function**       | `binary_crossentropy`                         | `sparse_categorical_crossentropy`           | `binary_crossentropy`                      | `mean_squared_error`                      |
 | **y Labels**            | 0 hoặc 1                                      | Integer từ 0 đến `num_classes-1` hoặc one-hot | 0 hoặc 1 cho mỗi label                     | Giá trị liên tục                          |
-
-Hy vọng bạn đã hiểu cách tùy chỉnh các yếu tố này cho các loại bài toán khác nhau trong FCN. Cần thêm thông tin hay có câu hỏi gì khác, đừng ngần ngại yêu cầu thêm nhé!
